@@ -307,7 +307,33 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         };
 
         OnTouchListener rootListener = new OnTouchListener() {
+	    private float baseValue, lastScale;
+	    private float originalScale;
             public boolean onTouch(View v, MotionEvent event) {
+		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			baseValue = 0;
+			lastScale = 0;
+			originalScale = mImageView.getScale();
+		}
+		if (event.getAction() == MotionEvent.ACTION_MOVE) {
+			if (event.getPointerCount() == 2) {
+				float x = event.getX(0) - event.getX(1);
+				float y = event.getY(0) - event.getY(1);
+				float value = (float)Math.sqrt(x * x + y * y);
+				if (baseValue == 0) {
+					baseValue = value;
+				} else {
+					float scale = value / baseValue;
+					if (Math.abs(lastScale - scale) > 0.1) {
+						lastScale = scale;
+						mImageView.zoomTo(originalScale * scale, x + event.getX(1), y + event.getY(1));
+					}
+				}
+
+				return true;
+			}
+		}
+
                 buttonListener.onTouch(v, event);
                 mGestureDetector.onTouchEvent(event);
 
